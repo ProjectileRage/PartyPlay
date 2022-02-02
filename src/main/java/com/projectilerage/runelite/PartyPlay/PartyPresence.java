@@ -4,7 +4,7 @@ import lombok.*;
 
 @Setter
 @Getter
-@Builder(access = AccessLevel.PACKAGE)
+@Builder
 @EqualsAndHashCode
 class PartyPresence {
     private String name;
