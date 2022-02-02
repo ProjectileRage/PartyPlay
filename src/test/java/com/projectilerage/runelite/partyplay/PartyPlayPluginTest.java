@@ -1,4 +1,4 @@
-package com.projectilerage.runelite.PartyPlay;
+package com.projectilerage.runelite.partyplay;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
