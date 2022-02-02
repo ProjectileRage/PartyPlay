@@ -15,7 +15,7 @@ def runeLiteVersion = '1.8.10'
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
 
-	compileOnly 'org.projectlombok:lombok:1.18.20'
+	compileOnly 'org.projectlombok:lombok:latest.release'
 	annotationProcessor 'org.projectlombok:lombok:latest.release'
 
 	testImplementation 'junit:junit:latest.release'
@@ -24,7 +24,7 @@ dependencies {
 }
 
 group = 'com.projectilerage'
-version = '1.0-SNAPSHOT'
+version = '1.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
