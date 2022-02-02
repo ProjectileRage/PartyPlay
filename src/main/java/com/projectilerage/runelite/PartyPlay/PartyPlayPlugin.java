@@ -32,7 +32,7 @@ import java.util.*;
 @PluginDescriptor(
         name = "Party Play",
         description = "Makes Runescape a little less single-player",
-        tags = {"action", "activity", "external", "integration", "status"}
+        tags = {"action", "activity", "status"}
 )
 @Slf4j
 @Singleton
@@ -85,7 +85,7 @@ public class PartyPlayPlugin extends Plugin {
     }
 
     @Subscribe
-    private void onGameStateChanged(GameStateChanged event)
+    public void onGameStateChanged(GameStateChanged event)
     {
         switch (event.getGameState())
         {
@@ -120,7 +120,7 @@ public class PartyPlayPlugin extends Plugin {
     }
 
     @Subscribe
-    private void onStatChanged(StatChanged statChanged)
+    public void onStatChanged(StatChanged statChanged)
     {
         final Skill skill = statChanged.getSkill();
         final int exp = statChanged.getXp();
@@ -138,7 +138,7 @@ public class PartyPlayPlugin extends Plugin {
             period = 10,
             unit = ChronoUnit.SECONDS
     )
-    private void maybeCheckForAreaUpdate() {
+    public void maybeCheckForAreaUpdate() {
         int regionId = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
         if(curArea == null || Arrays.stream(curArea.getRegionIds()).noneMatch((oldRegionId) -> oldRegionId == regionId)) {
             log.debug("Area Update Check");
@@ -195,33 +195,37 @@ public class PartyPlayPlugin extends Plugin {
     }
 
     @Subscribe
-    private void onPartyStateInfo(final PartyStateInfo event)
+    public void onPartyStateInfo(final PartyStateInfo event)
     {
         this.partyStateInfoMap.put(event.getMemberId(), event);
     }
 
     @Subscribe
-    private void onUserJoin(final UserJoin event)
+    public void onUserJoin(final UserJoin event)
     {
+        log.debug("onUserJoin: "  + partyService.getLocalMember());
         this.state.refresh();
     }
 
     @Subscribe
-    private void onUserSync(final UserSync event)
+    public void onUserSync(final UserSync event)
     {
+        log.debug("onUserSync: " + partyService.getLocalMember());
         this.state.refresh();
     }
 
     @Subscribe
-    private void onUserPart(final UserPart event)
+    public void onUserPart(final UserPart event)
     {
+        log.debug("onUserPart: " + partyService.getLocalMember());
         this.partyStateInfoMap.remove(event.getMemberId());
+        this.state.refresh();
     }
 
     @Subscribe
-    private void onPartyChanged(final PartyChanged event)
+    public void onPartyChanged(final PartyChanged event)
     {
-        log.debug("Party Change Detected. Clearing & Refreshing");
+        log.debug("onPartyChange: " + partyService.getLocalMember());
         this.partyStateInfoMap.clear();
         this.state.refresh();
     }

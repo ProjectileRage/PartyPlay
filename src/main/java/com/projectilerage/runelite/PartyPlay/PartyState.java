@@ -93,7 +93,8 @@ class PartyState
     }
 
     void refresh() {
-        maybeSharePresence(lastPresence);
+        log.debug("Refreshing: \n\t" + partyService.getLocalMember() + "\n\t" + lastPresence);
+        maybeSharePresence(lastPresence, true);
     }
 
     /**
@@ -194,11 +195,16 @@ class PartyState
     }
 
     private void maybeSharePresence(final PartyPresence presence) {
+        maybeSharePresence(presence, false);
+    }
+
+    private void maybeSharePresence(final PartyPresence presence, boolean force)
+    {
         if(presence == null) {
             return;
         }
         // This is to reduce amount of RPC calls
-        if (!presence.equals(lastPresence))
+        if (!presence.equals(lastPresence) || force)
         {
             PartyMember localMember = partyService.getLocalMember();
             if(localMember != null) {
@@ -232,7 +238,7 @@ class PartyState
             period = 1,
             unit = ChronoUnit.MINUTES
     )
-    private void checkForTimeout()
+    public void checkForTimeout()
     {
         if (events.isEmpty())
         {
