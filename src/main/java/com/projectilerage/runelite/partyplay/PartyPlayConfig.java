@@ -35,31 +35,26 @@ public interface PartyPlayConfig extends Config
 {
 	String GROUP = "partyplay";
 
-	@AllArgsConstructor
-	enum ElapsedTimeType
+	@ConfigItem(
+			keyName = "includeSelf",
+			name = "Include yourself",
+			description = "Shows yourself in the panel as part of the party",
+			position = 6
+	)
+	default boolean includeSelf()
 	{
-		TOTAL("Total elapsed time"),
-		ACTIVITY("Per activity"),
-		HIDDEN("Hide elapsed time");
-
-		private final String value;
-
-		@Override
-		public String toString()
-		{
-			return value;
-		}
+		return false;
 	}
 
 	@ConfigItem(
-		keyName = "elapsedTime",
-		name = "Elapsed Time",
-		description = "Configures elapsed time shown.",
-		position = 1
+			keyName = "recolorNames",
+			name = "Recolor names",
+			description = "Recolor party members names based on unique color hash",
+			position = 4
 	)
-	default ElapsedTimeType elapsedTimeType()
+	default boolean recolorNames()
 	{
-		return ElapsedTimeType.ACTIVITY;
+		return true;
 	}
 
 	@ConfigItem(
@@ -158,28 +153,6 @@ public interface PartyPlayConfig extends Config
 		position = 10
 	)
 	default boolean showRegionsActivity()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-			keyName = "includeSelf",
-			name = "Include yourself",
-			description = "Shows yourself in the panel as part of the party",
-			position = 6
-	)
-	default boolean includeSelf()
-	{
-		return false;
-	}
-
-	@ConfigItem(
-			keyName = "recolorNames",
-			name = "Recolor names",
-			description = "Recolor party members names based on unique color hash",
-			position = 4
-	)
-	default boolean recolorNames()
 	{
 		return true;
 	}

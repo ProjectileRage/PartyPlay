@@ -99,17 +99,21 @@ public class PartyOverlay extends OverlayPanel
                         .build();
                 panel.getChildren().add(name);
 
-                final TitleComponent activity = TitleComponent.builder()
-                        .text(stateInfo.getActivity())
-                        .color(ColorUtil.fromObject(stateInfo.getActivity()))
-                        .build();
-                panel.getChildren().add(activity);
+                if(stateInfo.getActivity() != null) {
+                    final TitleComponent activity = TitleComponent.builder()
+                            .text(stateInfo.getActivity())
+                            .color(ColorUtil.fromObject(stateInfo.getActivity()))
+                            .build();
+                    panel.getChildren().add(activity);
+                }
 
-                final TitleComponent location = TitleComponent.builder()
-                        .text(stateInfo.getLocation())
-                        .color(ColorUtil.fromObject(stateInfo.getLocation()))
-                        .build();
-                panel.getChildren().add(location);
+                if(stateInfo.getLocation() != null) {
+                    final TitleComponent location = TitleComponent.builder()
+                            .text(stateInfo.getLocation())
+                            .color(ColorUtil.fromObject(stateInfo.getLocation()))
+                            .build();
+                    panel.getChildren().add(location);
+                }
 
                 panelComponent.getChildren().add(panel);
             });

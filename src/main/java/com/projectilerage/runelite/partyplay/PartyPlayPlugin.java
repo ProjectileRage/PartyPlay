@@ -13,6 +13,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.StatChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.PartyChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -139,6 +140,10 @@ public class PartyPlayPlugin extends Plugin {
             unit = ChronoUnit.SECONDS
     )
     public void maybeCheckForAreaUpdate() {
+        if(client.getGameState() != GameState.LOGGED_IN) {
+            return;
+        }
+
         int regionId = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
         if(curArea == null || Arrays.stream(curArea.getRegionIds()).noneMatch((oldRegionId) -> oldRegionId == regionId)) {
             log.debug("Area Update Check");
@@ -228,6 +233,14 @@ public class PartyPlayPlugin extends Plugin {
         log.debug("onPartyChange: " + partyService.getLocalMember());
         this.partyStateInfoMap.clear();
         this.state.refresh();
+    }
+
+    @Subscribe
+    public void onConfigChanged(final ConfigChanged event) {
+        if(event.getGroup().equals(PartyPlayConfig.GROUP)) {
+            log.debug("Config changed; refreshing");
+            this.state.refresh();
+        }
     }
 
     @Provides

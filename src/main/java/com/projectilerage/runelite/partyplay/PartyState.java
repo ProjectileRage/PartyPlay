@@ -208,9 +208,55 @@ class PartyState
         {
             PartyMember localMember = partyService.getLocalMember();
             if(localMember != null) {
-                PartyStateInfo.PartyStateInfoBuilder infoBuild = PartyStateInfo.builder()
-                        .activity(presence.getActivity())
-                        .location(presence.getArea());
+                PartyStateInfo.PartyStateInfoBuilder infoBuild = PartyStateInfo.builder();
+
+                if(presence.getActivityEvent() == GameEventType.IN_MENU) {
+                    if(config.showMainMenu()) {
+                        infoBuild.activity(presence.getActivity());
+                    }
+                } else {
+                    if(config.showSkillingActivity()) {
+                        infoBuild.activity(presence.getActivity());
+                    } else {
+                        infoBuild.activity(GameEventType.IN_GAME.getState());
+                    }
+                }
+
+
+                boolean showAreaType = false;
+
+                switch(presence.getAreaEvent().getAreaType()) {
+                    case RAIDS:
+                        if(config.showRaidingActivity())
+                            showAreaType = true;
+                        break;
+                    case BOSSES:
+                        if(config.showBossActivity())
+                            showAreaType = true;
+                        break;
+                    case CITIES:
+                        if(config.showCityActivity())
+                            showAreaType = true;
+                        break;
+                    case REGIONS:
+                        if(config.showRegionsActivity())
+                            showAreaType = true;
+                        break;
+                    case DUNGEONS:
+                        if(config.showDungeonActivity())
+                            showAreaType = true;
+                        break;
+                    case MINIGAMES:
+                        if(config.showMinigameActivity())
+                            showAreaType = true;
+                        break;
+                }
+
+                if(showAreaType) {
+                    infoBuild.location(presence.getArea());
+                } else {
+                    infoBuild.location("Gielinor");
+                }
 
                 if(lastPresence != null && lastPresence.getName() != null) {
                     infoBuild.userId(lastPresence.getName());
