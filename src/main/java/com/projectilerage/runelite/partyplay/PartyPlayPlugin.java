@@ -140,7 +140,7 @@ public class PartyPlayPlugin extends Plugin {
             unit = ChronoUnit.SECONDS
     )
     public void maybeCheckForAreaUpdate() {
-        if(client.getGameState() != GameState.LOGGED_IN) {
+        if(GameState.LOGGED_IN.equals(client.getGameState())) {
             return;
         }
 

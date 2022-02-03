@@ -39,7 +39,7 @@ public interface PartyPlayConfig extends Config
 			keyName = "includeSelf",
 			name = "Include yourself",
 			description = "Shows yourself in the panel as part of the party",
-			position = 6
+			position = 1
 	)
 	default boolean includeSelf()
 	{
@@ -50,7 +50,7 @@ public interface PartyPlayConfig extends Config
 			keyName = "recolorNames",
 			name = "Recolor names",
 			description = "Recolor party members names based on unique color hash",
-			position = 4
+			position = 2
 	)
 	default boolean recolorNames()
 	{
@@ -61,7 +61,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "actionTimeout",
 		name = "Activity timeout",
 		description = "Configures after how long of not updating activity will be reset (in minutes)",
-		position = 2
+		position = 3
 	)
 	@Units(Units.MINUTES)
 	default int actionTimeout()
@@ -73,7 +73,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showMainMenu",
 		name = "Main Menu",
 		description = "Show status when in main menu",
-		position = 3
+		position = 4
 	)
 	default boolean showMainMenu()
 	{
@@ -84,7 +84,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showSkillActivity",
 		name = "Skilling",
 		description = "Show your activity while training skills",
-		position = 4
+		position = 5
 	)
 	default boolean showSkillingActivity()
 	{
@@ -95,7 +95,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showBossActivity",
 		name = "Bosses",
 		description = "Show your activity and location while at bosses",
-		position = 5
+		position = 6
 	)
 	default boolean showBossActivity()
 	{
@@ -106,7 +106,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showCityActivity",
 		name = "Cities",
 		description = "Show your activity and location while in cities",
-		position = 6
+		position = 7
 	)
 	default boolean showCityActivity()
 	{
@@ -117,7 +117,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showDungeonActivity",
 		name = "Dungeons",
 		description = "Show your activity and location while in dungeons",
-		position = 7
+		position = 8
 	)
 	default boolean showDungeonActivity()
 	{
@@ -128,7 +128,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showMinigameActivity",
 		name = "Minigames",
 		description = "Show your activity and location while in minigames",
-		position = 8
+		position = 9
 	)
 	default boolean showMinigameActivity()
 	{
@@ -139,7 +139,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showRaidingActivity",
 		name = "Raids",
 		description = "Show your activity and location while in Raids",
-		position = 9
+		position = 10
 	)
 	default boolean showRaidingActivity()
 	{
@@ -150,7 +150,7 @@ public interface PartyPlayConfig extends Config
 		keyName = "showRegionsActivity",
 		name = "Regions",
 		description = "Show your activity and location while in other regions",
-		position = 10
+		position = 11
 	)
 	default boolean showRegionsActivity()
 	{

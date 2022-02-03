@@ -225,31 +225,33 @@ class PartyState
 
                 boolean showAreaType = false;
 
-                switch(presence.getAreaEvent().getAreaType()) {
-                    case RAIDS:
-                        if(config.showRaidingActivity())
-                            showAreaType = true;
-                        break;
-                    case BOSSES:
-                        if(config.showBossActivity())
-                            showAreaType = true;
-                        break;
-                    case CITIES:
-                        if(config.showCityActivity())
-                            showAreaType = true;
-                        break;
-                    case REGIONS:
-                        if(config.showRegionsActivity())
-                            showAreaType = true;
-                        break;
-                    case DUNGEONS:
-                        if(config.showDungeonActivity())
-                            showAreaType = true;
-                        break;
-                    case MINIGAMES:
-                        if(config.showMinigameActivity())
-                            showAreaType = true;
-                        break;
+                if(presence.getAreaEvent() != null) {
+                    switch(presence.getAreaEvent().getAreaType()) {
+                        case RAIDS:
+                            if(config.showRaidingActivity())
+                                showAreaType = true;
+                            break;
+                        case BOSSES:
+                            if(config.showBossActivity())
+                                showAreaType = true;
+                            break;
+                        case CITIES:
+                            if(config.showCityActivity())
+                                showAreaType = true;
+                            break;
+                        case REGIONS:
+                            if(config.showRegionsActivity())
+                                showAreaType = true;
+                            break;
+                        case DUNGEONS:
+                            if(config.showDungeonActivity())
+                                showAreaType = true;
+                            break;
+                        case MINIGAMES:
+                            if(config.showMinigameActivity())
+                                showAreaType = true;
+                            break;
+                    }
                 }
 
                 if(showAreaType) {

@@ -77,6 +77,10 @@ public class PartyOverlay extends OverlayPanel
         {
             partyDataMap.forEach((uuid, stateInfo) ->
             {
+                if(stateInfo == null) {
+                    return;
+                }
+
                 boolean isSelf = party.getLocalMember() != null && party.getLocalMember().getMemberId().equals(uuid);
 
                 if (!config.includeSelf() && isSelf)
