@@ -104,6 +104,12 @@ class PartyState
      */
     void triggerEvent(final GameEventType eventType)
     {
+        if(eventType == null) {
+            log.error("Tried to pass null event type");
+            Thread.dumpStack();
+            return;
+        }
+
         final Optional<EventWithTime> foundEvent = events.stream().filter(e -> e.type == eventType).findFirst();
         final EventWithTime event;
 
