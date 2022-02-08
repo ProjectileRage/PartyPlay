@@ -28,7 +28,6 @@ package com.projectilerage.runelite.partyplay;
 import com.google.common.collect.ComparisonChain;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.task.Schedule;
 import net.runelite.client.ws.PartyMember;
 import net.runelite.client.ws.PartyService;
 import net.runelite.client.ws.WSClient;
@@ -37,7 +36,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -106,7 +104,7 @@ class PartyState
     {
         if(eventType == null) {
             log.error("Tried to pass null event type");
-            Thread.dumpStack();
+            log.error(Thread.currentThread().getStackTrace().toString());
             return;
         }
 
@@ -129,7 +127,7 @@ class PartyState
         if (event.getType().isShouldClear())
         {
             log.debug("Clearing events");
-            events.removeIf(e -> e.getType() != eventType && e.getType().isShouldBeCleared());
+            events.removeAll(events.parallelStream().filter(e -> e.getType() != eventType && e.getType().isShouldBeCleared()).collect(Collectors.toList()));
         }
 
         if (event.getType().isShouldRestart())
@@ -214,7 +212,7 @@ class PartyState
         {
             PartyMember localMember = partyService.getLocalMember();
             if(localMember != null) {
-                PartyStateInfo.PartyStateInfoBuilder infoBuild = PartyStateInfo.builder();
+                ActivityInfo.ActivityInfoBuilder infoBuild = ActivityInfo.builder();
 
                 if(presence.getActivityEvent() == GameEventType.IN_MENU) {
                     if(config.showMainMenu()) {
@@ -274,13 +272,10 @@ class PartyState
                     presence.setName(name);
                 }
 
-                PartyStateInfo info = infoBuild.build();
+                ActivityInfo info = infoBuild.build();
                 info.setMemberId(localMember.getMemberId());
                 wsClient.send(info);
-                plugin.getPartyStateInfoMap().put(
-                        localMember.getMemberId(),
-                        info
-                );
+                plugin.setActivityInfo(info);
             }
         }
     }
@@ -288,34 +283,38 @@ class PartyState
     /**
      * Check for current state timeout and act upon it.
      */
-    @Schedule(
-            period = 1,
-            unit = ChronoUnit.MINUTES
-    )
-    public void checkForTimeout()
+    void checkForTimeout()
     {
         if (events.isEmpty())
         {
+            log.debug("PPD:: Events is empty. Exiting timeouts check");
             return;
         }
+
+        log.debug("PPD:: Checking for timeouts");
 
         final Duration actionTimeout = Duration.ofMinutes(config.actionTimeout());
         final Instant now = Instant.now();
         int initalLength = events.size();
 
-        final boolean removedAny = events.removeAll(events.stream()
-                // Only include clearable events
-                .filter(event -> event.getType().isShouldBeCleared())
+        List<EventWithTime> eventsToRemove = events.parallelStream()
                 // Find only events that should time out
                 .filter(event -> event.getType().isShouldTimeout() && now.isAfter(event.getUpdated().plus(actionTimeout)))
-                .collect(Collectors.toList())
-        );
+                .collect(Collectors.toList());
 
-        if (removedAny)
-        {
+        if(!eventsToRemove.isEmpty()) {
+            events.removeAll(eventsToRemove);
             log.debug(events.size() - initalLength + " events removed. Updating");
             updatePresenceWithLatestEvent();
+            if(eventsToRemove.parallelStream().anyMatch((event) -> event.getType() == GameEventType.TRAINING_SLAYER)) {
+                log.debug("PPD:: Slayer event timed-out. Triggering slayer removal");
+                plugin.clearSlayerState();
+            }
         }
+    }
+
+    boolean containsEventType(GameEventType eventType) {
+        return events.parallelStream().anyMatch((e) -> e.getType() == eventType);
     }
 
     private String cleanName(String dirtyName) {

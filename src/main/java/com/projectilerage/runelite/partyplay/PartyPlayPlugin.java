@@ -1,24 +1,26 @@
 package com.projectilerage.runelite.partyplay;
 
+import com.google.common.base.Strings;
 import com.google.inject.Provides;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.Skill;
-import net.runelite.api.WorldType;
+import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.StatChanged;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.FontType;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.PartyChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.ws.PartyService;
 import net.runelite.client.ws.WSClient;
 import net.runelite.http.api.ws.messages.party.UserJoin;
@@ -27,6 +29,7 @@ import net.runelite.http.api.ws.messages.party.UserSync;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.awt.image.BufferedImage;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -40,6 +43,15 @@ import java.util.*;
 public class PartyPlayPlugin extends Plugin {
     @Inject
     private Client client;
+
+    @Inject
+    private InfoBoxManager infoBoxManager;
+
+    @Inject
+    private ConfigManager configManager;
+
+    @Inject
+    private ItemManager itemManager;
 
     @Inject
     private PartyPlayConfig config;
@@ -64,13 +76,16 @@ public class PartyPlayPlugin extends Plugin {
     @Getter(AccessLevel.PACKAGE)
     private final Map<UUID, PartyStateInfo> partyStateInfoMap = Collections.synchronizedMap(new HashMap<>());
 
+    private final Integer DEFAULT_SLAYER_ITEM = ItemID.SLAYER_HELMET;
+
     private GameEventType curArea;
 
     private boolean loginFlag;
 
     protected void startUp() throws Exception
     {
-        wsClient.registerMessage(PartyStateInfo.class);
+        wsClient.registerMessage(ActivityInfo.class);
+        wsClient.registerMessage(SlayerInfo.class);
         state.reset();
         checkForGameStateUpdate();
         checkForAreaUpdate();
@@ -80,9 +95,56 @@ public class PartyPlayPlugin extends Plugin {
     protected void shutDown() throws Exception
     {
         overlayManager.remove(partyOverlay);
-        wsClient.unregisterMessage(PartyStateInfo.class);
+        wsClient.unregisterMessage(ActivityInfo.class);
+        wsClient.unregisterMessage(SlayerInfo.class);
         state.reset();
         partyStateInfoMap.clear();
+    }
+
+    @Subscribe
+    public void onUserJoin(final UserJoin event)
+    {
+        log.debug("onUserJoin: "  + partyService.getLocalMember());
+        this.state.refresh();
+    }
+
+    @Subscribe
+    public void onUserSync(final UserSync event)
+    {
+        log.debug("onUserSync: " + partyService.getLocalMember());
+        this.state.refresh();
+    }
+
+    @Subscribe
+    public void onUserPart(final UserPart event)
+    {
+        log.debug("onUserPart: " + partyService.getLocalMember());
+        this.partyStateInfoMap.remove(event.getMemberId());
+        this.state.refresh();
+    }
+
+    @Subscribe
+    public void onPartyChanged(final PartyChanged event)
+    {
+        log.debug("onPartyChange: " + partyService.getLocalMember());
+        this.partyStateInfoMap.clear();
+        this.state.refresh();
+    }
+
+    @Subscribe
+    public void onConfigChanged(final ConfigChanged event) {
+        if(event.getGroup().equals(PartyPlayConfig.GROUP)) {
+            log.debug("Config changed; refreshing");
+            this.state.refresh();
+        } else if(event.getGroup().equals("slayer")) {
+            processSlayerConfig(event);
+        }
+    }
+
+    @Provides
+    public PartyPlayConfig provideConfig(ConfigManager configManager)
+    {
+        return configManager.getConfig(PartyPlayConfig.class);
     }
 
     @Subscribe
@@ -132,7 +194,19 @@ public class PartyPlayPlugin extends Plugin {
             return;
         }
 
-        this.state.triggerEvent(GameEventType.fromSkill(skill));
+        GameEventType event = GameEventType.fromSkill(skill);
+
+        if(event != null){
+            this.state.triggerEvent(event);
+        }
+    }
+
+    @Schedule(
+            period = 1,
+            unit = ChronoUnit.MINUTES
+    )
+    public void trimStateEvents() {
+        this.state.checkForTimeout();
     }
 
     @Schedule(
@@ -200,52 +274,134 @@ public class PartyPlayPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onPartyStateInfo(final PartyStateInfo event)
+    public void onActivityInfo(final ActivityInfo event)
     {
-        this.partyStateInfoMap.put(event.getMemberId(), event);
+        setActivityInfo(event);
     }
 
-    @Subscribe
-    public void onUserJoin(final UserJoin event)
-    {
-        log.debug("onUserJoin: "  + partyService.getLocalMember());
-        this.state.refresh();
+    ActivityInfo getActivityInfo(UUID uuid) {
+        PartyStateInfo partyStateInfo = partyStateInfoMap.get(uuid);
+
+        return partyStateInfo != null ? partyStateInfo.getActivityInfo() : null;
     }
 
-    @Subscribe
-    public void onUserSync(final UserSync event)
-    {
-        log.debug("onUserSync: " + partyService.getLocalMember());
-        this.state.refresh();
-    }
+    void setActivityInfo(ActivityInfo activityInfo) {
+        PartyStateInfo partyStateInfo = partyStateInfoMap.get(activityInfo.getMemberId());
 
-    @Subscribe
-    public void onUserPart(final UserPart event)
-    {
-        log.debug("onUserPart: " + partyService.getLocalMember());
-        this.partyStateInfoMap.remove(event.getMemberId());
-        this.state.refresh();
-    }
-
-    @Subscribe
-    public void onPartyChanged(final PartyChanged event)
-    {
-        log.debug("onPartyChange: " + partyService.getLocalMember());
-        this.partyStateInfoMap.clear();
-        this.state.refresh();
-    }
-
-    @Subscribe
-    public void onConfigChanged(final ConfigChanged event) {
-        if(event.getGroup().equals(PartyPlayConfig.GROUP)) {
-            log.debug("Config changed; refreshing");
-            this.state.refresh();
+        if (partyStateInfo != null) {
+            partyStateInfo.setActivityInfo(activityInfo);
+        } else {
+            this.partyStateInfoMap.put(activityInfo.getMemberId(), new PartyStateInfo(activityInfo));
         }
     }
 
-    @Provides
-    public PartyPlayConfig provideConfig(ConfigManager configManager)
-    {
-        return configManager.getConfig(PartyPlayConfig.class);
+
+    SlayerTask getActiveSlayerTask() {
+        return SlayerTask.ABERRANT_SPECTRES;
+    }
+
+    public DynamicInfoBoxComponent getSlayerInfoBox(SlayerTask task) {
+        if(task == null || task.getName() == null) {
+            log.debug("PPD:: Slayer task null; Exiting Slayer InfoBox creation");
+            return null;
+        }
+
+        int size = configManager.getConfiguration("runelite", "infoBoxSize", Integer.class);
+        FontType font = configManager.getConfiguration("runelite", "infoboxFontType", FontType.class);
+        boolean outline = configManager.getConfiguration("runelite", "infoBoxTextOutline", Boolean.class);
+
+        int item = task.getItemSpriteId();
+        BufferedImage rawImage = itemManager.getImage(item != 0 ? item : DEFAULT_SLAYER_ITEM);
+        BufferedImage image =  ImageUtil.resizeImage(rawImage, size, size, true);
+        DynamicInfoBoxComponent box = new DynamicInfoBoxComponent();
+        box.setImage(image);
+        box.setFont(font.getFont());
+        box.setOutline(outline);
+
+        return box;
+    }
+
+    SlayerInfo getSlayerInfo(UUID uuid) {
+        PartyStateInfo partyStateInfo = partyStateInfoMap.get(uuid);
+
+        return partyStateInfo != null ? partyStateInfo.getSlayerInfo() : null;
+    }
+
+    void setSlayerInfo(SlayerInfo slayerInfo) {
+        PartyStateInfo partyStateInfo = partyStateInfoMap.get(slayerInfo.getMemberId());
+
+        if (partyStateInfo != null) {
+            partyStateInfo.setSlayerInfo(slayerInfo);
+        } else if(slayerInfo.getSlayerTask() != null) {
+            this.partyStateInfoMap.put(slayerInfo.getMemberId(), new PartyStateInfo(slayerInfo));
+        }
+    }
+
+    @Subscribe
+    void onSlayerInfo(final SlayerInfo slayerInfo) {
+        setSlayerInfo(slayerInfo);
+    }
+
+    void processSlayerConfig(ConfigChanged event) {
+        log.debug("PPD:: Slayer Event - " + event.getKey() + ": " + event.getNewValue());
+
+        if(partyService.getLocalMember() == null || !state.containsEventType(GameEventType.TRAINING_SLAYER)) {
+            log.debug("PPD:: Slayer Event Non-applicable");
+            return;
+        }
+
+        String taskName = configManager.getRSProfileConfiguration("slayer", "taskName");
+        String amount = configManager.getRSProfileConfiguration("slayer", "amount");
+
+        if(Strings.isNullOrEmpty(taskName) || Strings.isNullOrEmpty(amount) || Integer.parseInt(amount) < 1) {
+            log.debug("PPD:: Null Slayer Event");
+            return;
+        }
+
+        SlayerInfo slayerInfo = getSlayerInfo(partyService.getLocalMember().getMemberId());
+        if(slayerInfo == null) {
+            slayerInfo = new SlayerInfo();
+            slayerInfo.setMemberId(partyService.getLocalMember().getMemberId());
+        }
+
+        String initialAmount = configManager.getRSProfileConfiguration("slayer", "initialAmount");
+        String taskLocation = configManager.getRSProfileConfiguration("slayer", "taskLocation");
+
+        log.debug("PPD:: Slayer task left: " + amount);
+        slayerInfo.setAmount(Integer.parseInt(amount));
+
+        if(slayerInfo.getSlayerTask() == null || !taskName.equals(slayerInfo.getSlayerTask().getName())) {
+            log.debug("PPD:: Slayer task name: " + taskName);
+            slayerInfo.setSlayerTask(SlayerTask.getTask(taskName));
+        }
+
+        if(!Strings.isNullOrEmpty(initialAmount)) {
+            log.debug("PPD:: Slayer task start: " + initialAmount);
+            slayerInfo.setInitialAmount(Integer.parseInt(initialAmount));
+        }
+
+        if(!Strings.isNullOrEmpty(taskLocation)) {
+            log.debug("PPD:: Slayer task location: " + taskLocation);
+            slayerInfo.setLocation(taskLocation);
+        }
+
+        setSlayerInfo(slayerInfo);
+        wsClient.send(slayerInfo);
+    }
+
+    void clearSlayerState() {
+        UUID localId = partyService.getLocalMember().getMemberId();
+
+        if (localId != null) {
+            PartyStateInfo partyStateInfo = partyStateInfoMap.get(localId);
+            if(partyStateInfo != null && partyStateInfo.getSlayerInfo() != null) {
+                log.debug("PPD:: Removing slayer state");
+                SlayerInfo slayerInfo = partyStateInfo.getSlayerInfo();
+                slayerInfo.reset();
+                wsClient.send(slayerInfo);
+            }
+        } else {
+            log.debug("PPD:: Null Local Member; Can't clear Slayer state");
+        }
     }
 }

@@ -25,12 +25,11 @@
  */
 package com.projectilerage.runelite.partyplay;
 
+import lombok.NonNull;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.ComponentConstants;
-import net.runelite.client.ui.overlay.components.PanelComponent;
-import net.runelite.client.ui.overlay.components.TitleComponent;
 import net.runelite.client.util.ColorUtil;
 import net.runelite.client.ws.PartyService;
 
@@ -47,7 +46,7 @@ public class PartyOverlay extends OverlayPanel
     private final PartyService party;
     private final PartyPlayConfig config;
 
-    private final Map<UUID, PanelComponent> panelMap = new HashMap<>();
+    private final Map<UUID, SplitComponentWrapper>  splitMap = new HashMap<>();
 
     @Inject
     private PartyOverlay(final PartyPlayPlugin plugin, final PartyState state, final PartyService party, final PartyPlayConfig config)
@@ -59,6 +58,7 @@ public class PartyOverlay extends OverlayPanel
         this.config = config;
         panelComponent.setBorder(new Rectangle());
         panelComponent.setGap(new Point(0, ComponentConstants.STANDARD_BORDER / 2));
+        this.setClearChildren(true);
         getMenuEntries().add(new OverlayMenuEntry(MenuAction.RUNELITE_OVERLAY, "Leave", "Party"));
     }
 
@@ -77,7 +77,7 @@ public class PartyOverlay extends OverlayPanel
         {
             partyDataMap.forEach((uuid, stateInfo) ->
             {
-                if(stateInfo == null) {
+                if(stateInfo == null || stateInfo.getActivityInfo() == null) {
                     return;
                 }
 
@@ -88,41 +88,81 @@ public class PartyOverlay extends OverlayPanel
                     return;
                 }
 
-                PanelComponent panel = panelMap.get(uuid);
+               SplitComponentWrapper split = splitMap.get(uuid);
 
-                if (panel == null) {
-                    panel = new PanelComponent();
-                    panelMap.put(uuid, panel);
+                if (split == null) {
+                    split = new SplitComponentWrapper();
+                    splitMap.put(uuid, split);
                 }
 
-                panel.getChildren().clear();
+                split.clearChildren();
+                ActivityInfo activityInfo = stateInfo.getActivityInfo();
 
-                final TitleComponent name = TitleComponent.builder()
-                        .text(stateInfo.getUserId())
-                        .color(config.recolorNames() ? ColorUtil.fromObject(stateInfo.getUserId()): Color.WHITE)
+                final DynamicTextComponent name = DynamicTextComponent.builder()
+                        .text(activityInfo.getUserId())
+                        .color(config.recolorNames() ? ColorUtil.fromObject(activityInfo.getUserId()): Color.WHITE)
+                        //.font(FontType.BOLD.getFont())
                         .build();
-                panel.getChildren().add(name);
+                split.firstPanel.getChildren().add(name);
 
-                if(stateInfo.getActivity() != null) {
-                    final TitleComponent activity = TitleComponent.builder()
-                            .text(stateInfo.getActivity())
-                            .color(ColorUtil.fromObject(stateInfo.getActivity()))
+                if(stateInfo.getActivityInfo().getActivity() != null) {
+                    final DynamicTextComponent activity = DynamicTextComponent.builder()
+                            .text(activityInfo.getActivity())
+                            .color(ColorUtil.fromObject(activityInfo.getActivity()))
+                            //.font(FontType.SMALL.getFont())
                             .build();
-                    panel.getChildren().add(activity);
+                    split.firstPanel.getChildren().add(activity);
                 }
 
-                if(stateInfo.getLocation() != null) {
-                    final TitleComponent location = TitleComponent.builder()
-                            .text(stateInfo.getLocation())
-                            .color(ColorUtil.fromObject(stateInfo.getLocation()))
+                if(stateInfo.getActivityInfo().getLocation() != null) {
+                    final DynamicTextComponent location = DynamicTextComponent.builder()
+                            .text(activityInfo.getLocation())
+                            .color(ColorUtil.fromObject(activityInfo.getLocation()))
+                            //.font(FontType.SMALL.getFont())
                             .build();
-                    panel.getChildren().add(location);
+                    split.firstPanel.getChildren().add(location);
                 }
 
-                panelComponent.getChildren().add(panel);
+                SlayerInfo slayerInfo = stateInfo.getSlayerInfo();
+
+                if(slayerInfo != null && slayerInfo.getSlayerTask() != null) {
+                    DynamicInfoBoxComponent box = plugin.getSlayerInfoBox(slayerInfo.getSlayerTask());
+
+                    if(box != null) {
+                        box.setText(Integer.toString(slayerInfo.getAmount()));
+                        box.setBackgroundColor(null);
+                        box.setTooltip(getSlayerTooltip(stateInfo.getSlayerInfo()));
+                        split.secondPanel.getChildren().add(box);
+                    }
+                }
+
+                panelComponent.getChildren().add(split.split);
             });
         }
 
         return super.render(graphics);
+    }
+
+    static String getSlayerTooltip(@NonNull SlayerInfo slayerInfo) {
+        String taskTooltip = ColorUtil.wrapWithColorTag("%s", new Color(255, 119, 0)) + "</br>";
+        if (slayerInfo.getLocation() != null && !slayerInfo.getLocation().isEmpty())
+        {
+            taskTooltip += slayerInfo.getLocation() + "</br>";
+        }
+
+       /* taskTooltip += ColorUtil.wrapWithColorTag("Pts:", Color.YELLOW)
+                + " %s</br>"
+                + ColorUtil.wrapWithColorTag("Streak:", Color.YELLOW)
+                + " %s";
+        */
+
+        if (slayerInfo.getInitialAmount() > 0)
+        {
+            taskTooltip += "</br>"
+                    + ColorUtil.wrapWithColorTag("Start:", Color.YELLOW)
+                    + " " + slayerInfo.getInitialAmount();
+        }
+
+        return String.format(taskTooltip, slayerInfo.getSlayerTask().getName());//, getIntProfileConfig(SlayerConfig.POINTS_KEY), getIntProfileConfig(SlayerConfig.STREAK_KEY));
     }
 }

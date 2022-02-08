@@ -1,16 +1,17 @@
 package com.projectilerage.runelite.partyplay;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-import net.runelite.http.api.ws.messages.party.PartyMemberMessage;
+import lombok.Data;
 
-@Builder
-@Value
-@EqualsAndHashCode(callSuper = true)
-class PartyStateInfo extends PartyMemberMessage
-{
-    private final String userId;
-    private final String activity;
-    private final String location;
+@Data
+class PartyStateInfo {
+    private ActivityInfo activityInfo;
+    private SlayerInfo slayerInfo;
+
+    PartyStateInfo(ActivityInfo activityInfo) {
+        this.setActivityInfo(activityInfo);
+    }
+
+    PartyStateInfo(SlayerInfo slayerInfo) {
+        this.setSlayerInfo(slayerInfo);
+    }
 }
