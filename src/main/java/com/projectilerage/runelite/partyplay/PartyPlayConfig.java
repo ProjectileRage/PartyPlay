@@ -70,10 +70,18 @@ public interface PartyPlayConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "showSlayerActivity",
+			name="Slayer",
+			description = "Show/share slayer activity information e.g. Assigned monster + count",
+			position = 4
+	)
+	default boolean showSlayerActivity() { return true; }
+
+	@ConfigItem(
 		keyName = "showMainMenu",
 		name = "Main Menu",
-		description = "Show status when in main menu",
-		position = 4
+		description = "Share status when in main menu",
+		position = 5
 	)
 	default boolean showMainMenu()
 	{
@@ -83,8 +91,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showSkillActivity",
 		name = "Skilling",
-		description = "Show your activity while training skills",
-		position = 5
+		description = "Show/share activity while training skills",
+		position = 6
 	)
 	default boolean showSkillingActivity()
 	{
@@ -94,8 +102,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showBossActivity",
 		name = "Bosses",
-		description = "Show your activity and location while at bosses",
-		position = 6
+		description = "Show/share activity and location while at bosses",
+		position = 7
 	)
 	default boolean showBossActivity()
 	{
@@ -105,8 +113,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showCityActivity",
 		name = "Cities",
-		description = "Show your activity and location while in cities",
-		position = 7
+		description = "Show/share activity and location while in cities",
+		position = 8
 	)
 	default boolean showCityActivity()
 	{
@@ -116,8 +124,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showDungeonActivity",
 		name = "Dungeons",
-		description = "Show your activity and location while in dungeons",
-		position = 8
+		description = "Show/share activity and location while in dungeons",
+		position = 9
 	)
 	default boolean showDungeonActivity()
 	{
@@ -127,8 +135,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showMinigameActivity",
 		name = "Minigames",
-		description = "Show your activity and location while in minigames",
-		position = 9
+		description = "Show/share activity and location while in minigames",
+		position = 10
 	)
 	default boolean showMinigameActivity()
 	{
@@ -138,8 +146,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showRaidingActivity",
 		name = "Raids",
-		description = "Show your activity and location while in Raids",
-		position = 10
+		description = "Show/share activity and location while in Raids",
+		position = 11
 	)
 	default boolean showRaidingActivity()
 	{
@@ -149,8 +157,8 @@ public interface PartyPlayConfig extends Config
 	@ConfigItem(
 		keyName = "showRegionsActivity",
 		name = "Regions",
-		description = "Show your activity and location while in other regions",
-		position = 11
+		description = "Show/share activity and location while in other regions",
+		position = 12
 	)
 	default boolean showRegionsActivity()
 	{

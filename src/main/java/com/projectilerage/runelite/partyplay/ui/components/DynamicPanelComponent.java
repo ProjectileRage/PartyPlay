@@ -1,5 +1,6 @@
-package com.projectilerage.runelite.partyplay;
+package com.projectilerage.runelite.partyplay.ui.components;
 
+import com.projectilerage.runelite.partyplay.ui.Padding;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.client.ui.overlay.components.*;
@@ -9,7 +10,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-class DynamicPanelComponent extends PanelComponent {
+public class DynamicPanelComponent extends PanelComponent {
     @Getter
     private final Rectangle bounds = new Rectangle();
 

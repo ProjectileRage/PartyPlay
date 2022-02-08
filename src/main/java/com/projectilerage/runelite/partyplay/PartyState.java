@@ -88,6 +88,7 @@ class PartyState
         log.debug("Resetting");
         events.clear();
         lastPresence = null;
+        plugin.clearSlayerState();
     }
 
     void refresh() {

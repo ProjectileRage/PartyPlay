@@ -1,4 +1,4 @@
-package com.projectilerage.runelite.partyplay;
+package com.projectilerage.runelite.partyplay.ui.components;
 
 import lombok.Builder;
 import lombok.Getter;

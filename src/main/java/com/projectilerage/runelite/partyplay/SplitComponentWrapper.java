@@ -1,5 +1,8 @@
 package com.projectilerage.runelite.partyplay;
 
+import com.projectilerage.runelite.partyplay.ui.components.DynamicPanelComponent;
+import com.projectilerage.runelite.partyplay.ui.Padding;
+import com.projectilerage.runelite.partyplay.ui.components.DynamicSplitComponent;
 import net.runelite.client.ui.overlay.components.*;
 import net.runelite.client.ui.overlay.components.ComponentOrientation;
 

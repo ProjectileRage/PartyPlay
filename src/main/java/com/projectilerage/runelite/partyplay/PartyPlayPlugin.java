@@ -2,6 +2,7 @@ package com.projectilerage.runelite.partyplay;
 
 import com.google.common.base.Strings;
 import com.google.inject.Provides;
+import com.projectilerage.runelite.partyplay.ui.components.DynamicInfoBoxComponent;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -170,6 +171,7 @@ public class PartyPlayPlugin extends Plugin {
                 {
                     loginFlag = false;
                     this.state.reset();
+                    processSlayerConfig();
                     checkForGameStateUpdate();
                 }
                 checkForAreaUpdate();
@@ -349,8 +351,9 @@ public class PartyPlayPlugin extends Plugin {
     }
 
     void processSlayerConfig() {
-        if(partyService.getLocalMember() == null || !state.containsEventType(GameEventType.TRAINING_SLAYER)) {
-            log.debug("PPD:: Slayer Event Non-applicable");
+        if(partyService.getLocalMember() == null || !state.containsEventType(GameEventType.TRAINING_SLAYER) || !config.showSlayerActivity()) {
+            log.debug("PPD:: Slayer Event Non-applicable; Clearing Slayer state");
+            clearSlayerState();
             return;
         }
 
@@ -394,6 +397,10 @@ public class PartyPlayPlugin extends Plugin {
     }
 
     void clearSlayerState() {
+        if(partyService.getLocalMember() == null) {
+            return;
+        }
+
         UUID localId = partyService.getLocalMember().getMemberId();
 
         if (localId != null) {

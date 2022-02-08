@@ -1,4 +1,4 @@
-package com.projectilerage.runelite.partyplay;
+package com.projectilerage.runelite.partyplay.ui.components;
 
 import com.google.common.base.Strings;
 import lombok.Getter;
@@ -39,7 +39,7 @@ public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
 
     private Color color = Color.WHITE;
 
-    private Font font;
+    private Font font = FontManager.getDefaultFont();
 
     private boolean outline;
 
@@ -47,7 +47,7 @@ public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
 
     private BufferedImage image;
 
-    DynamicInfoBoxComponent(Client client, TooltipManager tooltipManager) {
+    public DynamicInfoBoxComponent(Client client, TooltipManager tooltipManager) {
         this.client = client;
         this.tooltipManager = tooltipManager;
     }
@@ -97,6 +97,7 @@ public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
                 final TextComponent textComponent = new TextComponent();
                 textComponent.setColor(color);
                 textComponent.setOutline(outline);
+                textComponent.setFont(graphics.getFont());
                 textComponent.setText(line);
                 textComponent.setPosition(new Point(x - graphics.getFontMetrics().stringWidth(line) / 2, y));
                 textComponent.render(graphics);

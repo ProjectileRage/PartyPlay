@@ -25,6 +25,8 @@
  */
 package com.projectilerage.runelite.partyplay;
 
+import com.projectilerage.runelite.partyplay.ui.components.DynamicInfoBoxComponent;
+import com.projectilerage.runelite.partyplay.ui.components.DynamicTextComponent;
 import lombok.NonNull;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
@@ -68,7 +70,7 @@ public class PartyOverlay extends OverlayPanel
         final Map<UUID, PartyStateInfo> partyDataMap = plugin.getPartyStateInfoMap();
         if (partyDataMap.isEmpty())
         {
-            return null;
+            return new Dimension();
         }
 
         panelComponent.setBackgroundColor(null);
@@ -122,7 +124,7 @@ public class PartyOverlay extends OverlayPanel
 
                 SlayerInfo slayerInfo = stateInfo.getSlayerInfo();
 
-                if(slayerInfo != null && slayerInfo.getSlayerTask() != null) {
+                if(slayerInfo != null && slayerInfo.getSlayerTask() != null && config.showSlayerActivity()) {
                     DynamicInfoBoxComponent box = plugin.getSlayerInfoBox(slayerInfo.getSlayerTask());
 
                     if(box != null) {

@@ -1,4 +1,4 @@
-package com.projectilerage.runelite.partyplay;
+package com.projectilerage.runelite.partyplay.ui;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.awt.*;
 
 @Data
 @AllArgsConstructor
-class Padding {
+public class Padding {
     private int top;
     private int bottom;
     private int left;
@@ -22,11 +22,11 @@ class Padding {
         right = indivWidth;
     }
 
-    int getVertical() {
+    public int getVertical() {
         return top + bottom;
     }
 
-    int getHorizontal() {
+    public int getHorizontal() {
         return left + right;
     }
 }
