@@ -20,6 +20,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.ws.PartyService;
 import net.runelite.client.ws.WSClient;
@@ -69,6 +70,9 @@ public class PartyPlayPlugin extends Plugin {
     private PartyState state;
 
     @Inject
+    private TooltipManager tooltipManager;
+
+    @Inject
     private WSClient wsClient;
 
     private final Map<Skill, Integer> skillExp = new HashMap<>();
@@ -106,6 +110,7 @@ public class PartyPlayPlugin extends Plugin {
     {
         log.debug("onUserJoin: "  + partyService.getLocalMember());
         this.state.refresh();
+        processSlayerConfig();
     }
 
     @Subscribe
@@ -113,6 +118,7 @@ public class PartyPlayPlugin extends Plugin {
     {
         log.debug("onUserSync: " + partyService.getLocalMember());
         this.state.refresh();
+        processSlayerConfig();
     }
 
     @Subscribe
@@ -120,7 +126,6 @@ public class PartyPlayPlugin extends Plugin {
     {
         log.debug("onUserPart: " + partyService.getLocalMember());
         this.partyStateInfoMap.remove(event.getMemberId());
-        this.state.refresh();
     }
 
     @Subscribe
@@ -129,6 +134,7 @@ public class PartyPlayPlugin extends Plugin {
         log.debug("onPartyChange: " + partyService.getLocalMember());
         this.partyStateInfoMap.clear();
         this.state.refresh();
+        processSlayerConfig();
     }
 
     @Subscribe
@@ -137,7 +143,7 @@ public class PartyPlayPlugin extends Plugin {
             log.debug("Config changed; refreshing");
             this.state.refresh();
         } else if(event.getGroup().equals("slayer")) {
-            processSlayerConfig(event);
+            processSlayerConfig();
         }
     }
 
@@ -313,7 +319,7 @@ public class PartyPlayPlugin extends Plugin {
         int item = task.getItemSpriteId();
         BufferedImage rawImage = itemManager.getImage(item != 0 ? item : DEFAULT_SLAYER_ITEM);
         BufferedImage image =  ImageUtil.resizeImage(rawImage, size, size, true);
-        DynamicInfoBoxComponent box = new DynamicInfoBoxComponent();
+        DynamicInfoBoxComponent box = new DynamicInfoBoxComponent(client, tooltipManager);
         box.setImage(image);
         box.setFont(font.getFont());
         box.setOutline(outline);
@@ -342,9 +348,7 @@ public class PartyPlayPlugin extends Plugin {
         setSlayerInfo(slayerInfo);
     }
 
-    void processSlayerConfig(ConfigChanged event) {
-        log.debug("PPD:: Slayer Event - " + event.getKey() + ": " + event.getNewValue());
-
+    void processSlayerConfig() {
         if(partyService.getLocalMember() == null || !state.containsEventType(GameEventType.TRAINING_SLAYER)) {
             log.debug("PPD:: Slayer Event Non-applicable");
             return;

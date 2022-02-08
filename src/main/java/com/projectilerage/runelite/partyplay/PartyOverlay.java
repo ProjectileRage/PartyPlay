@@ -101,7 +101,6 @@ public class PartyOverlay extends OverlayPanel
                 final DynamicTextComponent name = DynamicTextComponent.builder()
                         .text(activityInfo.getUserId())
                         .color(config.recolorNames() ? ColorUtil.fromObject(activityInfo.getUserId()): Color.WHITE)
-                        //.font(FontType.BOLD.getFont())
                         .build();
                 split.firstPanel.getChildren().add(name);
 
@@ -109,7 +108,6 @@ public class PartyOverlay extends OverlayPanel
                     final DynamicTextComponent activity = DynamicTextComponent.builder()
                             .text(activityInfo.getActivity())
                             .color(ColorUtil.fromObject(activityInfo.getActivity()))
-                            //.font(FontType.SMALL.getFont())
                             .build();
                     split.firstPanel.getChildren().add(activity);
                 }
@@ -118,7 +116,6 @@ public class PartyOverlay extends OverlayPanel
                     final DynamicTextComponent location = DynamicTextComponent.builder()
                             .text(activityInfo.getLocation())
                             .color(ColorUtil.fromObject(activityInfo.getLocation()))
-                            //.font(FontType.SMALL.getFont())
                             .build();
                     split.firstPanel.getChildren().add(location);
                 }
@@ -144,17 +141,11 @@ public class PartyOverlay extends OverlayPanel
     }
 
     static String getSlayerTooltip(@NonNull SlayerInfo slayerInfo) {
-        String taskTooltip = ColorUtil.wrapWithColorTag("%s", new Color(255, 119, 0)) + "</br>";
+        String taskTooltip = ColorUtil.wrapWithColorTag("%s", new Color(94, 7, 7)) + "</br>";
         if (slayerInfo.getLocation() != null && !slayerInfo.getLocation().isEmpty())
         {
             taskTooltip += slayerInfo.getLocation() + "</br>";
         }
-
-       /* taskTooltip += ColorUtil.wrapWithColorTag("Pts:", Color.YELLOW)
-                + " %s</br>"
-                + ColorUtil.wrapWithColorTag("Streak:", Color.YELLOW)
-                + " %s";
-        */
 
         if (slayerInfo.getInitialAmount() > 0)
         {
@@ -163,6 +154,6 @@ public class PartyOverlay extends OverlayPanel
                     + " " + slayerInfo.getInitialAmount();
         }
 
-        return String.format(taskTooltip, slayerInfo.getSlayerTask().getName());//, getIntProfileConfig(SlayerConfig.POINTS_KEY), getIntProfileConfig(SlayerConfig.STREAK_KEY));
+        return String.format(taskTooltip, slayerInfo.getSlayerTask().getName());
     }
 }
