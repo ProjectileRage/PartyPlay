@@ -28,10 +28,10 @@ package com.projectilerage.runelite.partyplay;
 import com.projectilerage.runelite.partyplay.ui.components.DynamicInfoBoxComponent;
 import com.projectilerage.runelite.partyplay.ui.components.DynamicTextComponent;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
-import net.runelite.client.ui.overlay.components.ComponentConstants;
 import net.runelite.client.util.ColorUtil;
 import net.runelite.client.ws.PartyService;
 
@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 public class PartyOverlay extends OverlayPanel
 {
     private final PartyPlayPlugin plugin;
@@ -49,6 +50,9 @@ public class PartyOverlay extends OverlayPanel
     private final PartyPlayConfig config;
 
     private final Map<UUID, SplitComponentWrapper>  splitMap = new HashMap<>();
+    private final GameEventType longestEvent = GameEventType.REGION_DRILL_SERGEANT;
+
+    private int width = 0;
 
     @Inject
     private PartyOverlay(final PartyPlayPlugin plugin, final PartyState state, final PartyService party, final PartyPlayConfig config)
@@ -58,9 +62,8 @@ public class PartyOverlay extends OverlayPanel
         this.state = state;
         this.party = party;
         this.config = config;
+        this.setResizable(false);
         panelComponent.setBorder(new Rectangle());
-        panelComponent.setGap(new Point(0, ComponentConstants.STANDARD_BORDER / 2));
-        this.setClearChildren(true);
         getMenuEntries().add(new OverlayMenuEntry(MenuAction.RUNELITE_OVERLAY, "Leave", "Party"));
     }
 
@@ -72,6 +75,11 @@ public class PartyOverlay extends OverlayPanel
         {
             return new Dimension();
         }
+
+        int width = graphics.getFontMetrics().stringWidth(longestEvent.getState());
+        int height = graphics.getFontMetrics().getHeight() * 3;
+
+        this.setPreferredSize(new Dimension(width, height));
 
         panelComponent.setBackgroundColor(null);
 
@@ -130,7 +138,7 @@ public class PartyOverlay extends OverlayPanel
                     if(box != null) {
                         box.setText(Integer.toString(slayerInfo.getAmount()));
                         box.setBackgroundColor(null);
-                        box.setTooltip(getSlayerTooltip(stateInfo.getSlayerInfo()));
+                        box.setTooltip(getSlayerTooltip(slayerInfo));
                         split.secondPanel.getChildren().add(box);
                     }
                 }
@@ -143,7 +151,7 @@ public class PartyOverlay extends OverlayPanel
     }
 
     static String getSlayerTooltip(@NonNull SlayerInfo slayerInfo) {
-        String taskTooltip = ColorUtil.wrapWithColorTag("%s", new Color(94, 7, 7)) + "</br>";
+        String taskTooltip = ColorUtil.wrapWithColorTag("%s", new Color(157, 8, 8)) + "</br>";
         if (slayerInfo.getLocation() != null && !slayerInfo.getLocation().isEmpty())
         {
             taskTooltip += slayerInfo.getLocation() + "</br>";

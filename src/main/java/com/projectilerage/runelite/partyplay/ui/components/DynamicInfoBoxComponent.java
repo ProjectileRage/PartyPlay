@@ -90,7 +90,7 @@ public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
         if (!Strings.isNullOrEmpty(text))
         {
             List<String> lines = text.lines().collect(Collectors.toList());
-            int y = calcY + image.getHeight() - graphics.getFontMetrics().getHeight() * lines.size();
+            int y = calcY + image.getHeight() - graphics.getFontMetrics().getHeight() * (lines.size() - 1);
             int x = (calcX + image.getWidth() / 2);
 
             for(String line : lines) {

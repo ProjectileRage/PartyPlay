@@ -143,6 +143,7 @@ public class PartyPlayPlugin extends Plugin {
         if(event.getGroup().equals(PartyPlayConfig.GROUP)) {
             log.debug("Config changed; refreshing");
             this.state.refresh();
+            processSlayerConfig();
         } else if(event.getGroup().equals("slayer")) {
             processSlayerConfig();
         }
@@ -360,8 +361,14 @@ public class PartyPlayPlugin extends Plugin {
         String taskName = configManager.getRSProfileConfiguration("slayer", "taskName");
         String amount = configManager.getRSProfileConfiguration("slayer", "amount");
 
-        if(Strings.isNullOrEmpty(taskName) || Strings.isNullOrEmpty(amount) || Integer.parseInt(amount) < 1) {
+        if(Strings.isNullOrEmpty(taskName) || Strings.isNullOrEmpty(amount)) {
             log.debug("PPD:: Null Slayer Event");
+            return;
+        }
+
+        if(Integer.parseInt(amount) == 0) {
+            log.debug("Task completed. Clearing state");
+            clearSlayerState();
             return;
         }
 

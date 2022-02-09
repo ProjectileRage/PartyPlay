@@ -54,15 +54,14 @@ public class DynamicPanelComponent extends PanelComponent {
             return new Dimension(0, 0);
         }
 
-        final Dimension dimension = new Dimension(
-                border.x + this.cachedDimensions.width + border.width + padding.getVertical(),
-                border.y + this.cachedDimensions.height + border.height + padding.getHorizontal());
+        int prefWidth = Math.max(preferredSize.width, this.cachedDimensions.width);
+        int prefHeight = Math.max(preferredSize.height, this.cachedDimensions.height);
 
         // Render background
         if (backgroundColor != null)
         {
             final BackgroundComponent backgroundComponent = new BackgroundComponent();
-            backgroundComponent.setRectangle(new Rectangle(preferredLocation, dimension));
+            backgroundComponent.setRectangle(new Rectangle(preferredLocation, new Dimension(prefWidth, prefHeight)));
             backgroundComponent.setBackgroundColor(backgroundColor);
             backgroundComponent.render(graphics);
         }
@@ -70,18 +69,17 @@ public class DynamicPanelComponent extends PanelComponent {
         // Offset children
         final int baseX = preferredLocation.x + border.x + padding.getLeft();
         final int baseY = preferredLocation.y + border.y + padding.getTop();
+        int totalHorizontalOffset = border.x + border.width + padding.getHorizontal();
+        int totalVerticalOffset = border.y + border.height + padding.getVertical();
         int width = 0;
         int height = 0;
         int x = baseX;
         int y = baseY;
 
-        int prefWidth = Math.max(preferredSize.width, this.cachedDimensions.width + border.x + border.width + padding.getHorizontal());
-        int prefHeight = Math.max(preferredSize.height, this.cachedDimensions.height + border.y + border.height + padding.getVertical());
-
         // Create child preferred size
         final Dimension childPreferredSize = new Dimension(
-                prefWidth - border.x - border.width - padding.getHorizontal(),
-                prefHeight - border.y - border.height - padding.getVertical());
+                prefWidth - totalHorizontalOffset,
+                prefHeight - totalVerticalOffset);
 
         // Calculate max width/height for infoboxes
         int totalHeight = 0;
@@ -133,8 +131,8 @@ public class DynamicPanelComponent extends PanelComponent {
             totalHeight -= gap.y;
         }
 
-        totalWidth += padding.getRight();
-        totalHeight += padding.getBottom();
+        totalWidth += totalHorizontalOffset;
+        totalHeight += totalVerticalOffset;
 
         // Cache children bounds
         this.cachedDimensions.setSize(totalWidth, totalHeight);
@@ -143,6 +141,7 @@ public class DynamicPanelComponent extends PanelComponent {
         // Cache bounds
         bounds.setLocation(preferredLocation);
         bounds.setSize(totalWidth, totalHeight);
-        return dimension;
+
+        return bounds.getSize();
     }
 }
