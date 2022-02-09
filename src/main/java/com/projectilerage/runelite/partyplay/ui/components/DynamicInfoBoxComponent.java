@@ -14,8 +14,6 @@ import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Setter
 public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
@@ -61,10 +59,9 @@ public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
         }
 
         graphics.setFont(getSize() < DEFAULT_SIZE ? FontManager.getRunescapeSmallFont() : font);
-        final int longestText = Strings.isNullOrEmpty(text) ? 0 : text.lines().mapToInt((line) -> graphics.getFontMetrics().stringWidth(line)).max().getAsInt();
         final int baseX = preferredLocation.x;
         final int baseY = preferredLocation.y;
-        final int width = Math.max(image.getWidth(), Math.max(preferredSize.width, longestText));
+        final int width = Math.max(image.getWidth(), preferredSize.width);
         final int height = Math.max(image.getHeight(), preferredSize.height);
         final int calcX = Math.max(baseX, baseX + (width - image.getWidth(null)) / 2);
         final int calcY = Math.max(baseY, baseY + (height - image.getHeight(null)) / 2);
@@ -89,23 +86,17 @@ public class DynamicInfoBoxComponent implements LayoutableRenderableEntity
         // Render caption
         if (!Strings.isNullOrEmpty(text))
         {
-            List<String> lines = text.lines().collect(Collectors.toList());
-            int y = calcY + image.getHeight() - graphics.getFontMetrics().getHeight() * (lines.size() - 1);
-            int x = (calcX + image.getWidth() / 2);
+            int y = calcY + image.getHeight();
+            int x = (calcX + image.getWidth() / 2) - graphics.getFontMetrics().stringWidth(text) / 2;
 
-            for(String line : lines) {
-                final TextComponent textComponent = new TextComponent();
-                textComponent.setColor(color);
-                textComponent.setOutline(outline);
-                textComponent.setFont(graphics.getFont());
-                textComponent.setText(line);
-                textComponent.setPosition(new Point(x - graphics.getFontMetrics().stringWidth(line) / 2, y));
-                textComponent.render(graphics);
-                y += graphics.getFontMetrics().getHeight();
-            }
+            final TextComponent textComponent = new TextComponent();
+            textComponent.setColor(color);
+            textComponent.setOutline(outline);
+            textComponent.setFont(graphics.getFont());
+            textComponent.setText(text);
+            textComponent.setPosition(new Point(x, y));
+            textComponent.render(graphics);
         }
-
-
 
         this.bounds.setBounds(bounds);
 
