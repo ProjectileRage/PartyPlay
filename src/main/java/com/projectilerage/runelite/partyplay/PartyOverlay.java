@@ -28,7 +28,6 @@ package com.projectilerage.runelite.partyplay;
 import com.projectilerage.runelite.partyplay.ui.components.DynamicInfoBoxComponent;
 import com.projectilerage.runelite.partyplay.ui.components.DynamicTextComponent;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -41,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 public class PartyOverlay extends OverlayPanel
 {
     private final PartyPlayPlugin plugin;

@@ -304,11 +304,6 @@ public class PartyPlayPlugin extends Plugin {
         }
     }
 
-
-    SlayerTask getActiveSlayerTask() {
-        return SlayerTask.ABERRANT_SPECTRES;
-    }
-
     public DynamicInfoBoxComponent getSlayerInfoBox(SlayerTask task) {
         if(task == null || task.getName() == null) {
             log.debug("PPD:: Slayer task null; Exiting Slayer InfoBox creation");
@@ -367,7 +362,7 @@ public class PartyPlayPlugin extends Plugin {
         }
 
         if(Integer.parseInt(amount) == 0) {
-            log.debug("Task completed. Clearing state");
+            log.debug("PPD:: Task completed. Clearing state");
             clearSlayerState();
             return;
         }
