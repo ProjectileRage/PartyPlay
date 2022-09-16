@@ -19,6 +19,7 @@ import net.runelite.client.events.PartyChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.party.messages.StatusUpdate;
 import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
@@ -156,6 +157,16 @@ public class PartyPlayPlugin extends Plugin {
         return configManager.getConfig(PartyPlayConfig.class);
     }
 
+    private String getLocalPlayerName() {
+        String name = client.getLocalPlayer().getName();
+
+        if(name != null) {
+            return name;
+        }
+
+        return "Client Unknown";
+    }
+
     @Subscribe
     public void onGameStateChanged(GameStateChanged event)
     {
@@ -176,6 +187,7 @@ public class PartyPlayPlugin extends Plugin {
                     processSlayerConfig();
                     checkForGameStateUpdate();
                 }
+
                 checkForAreaUpdate();
                 break;
         }
@@ -189,6 +201,14 @@ public class PartyPlayPlugin extends Plugin {
             state.triggerEvent(isLoggedIn
                     ? GameEventType.IN_GAME
                     : GameEventType.IN_MENU);
+        }
+    }
+
+    @Subscribe
+    public void onStatusUpdate(StatusUpdate statusUpdate) {
+        if(statusUpdate.getMemberId() == this.partyService.getLocalMember().getMemberId()) {
+            log.debug("PPD:: onStatusUpdate: Setting " + Strings.nullToEmpty(statusUpdate.getCharacterName()));
+            this.state.setLocalPlayerName(statusUpdate.getCharacterName());
         }
     }
 
@@ -286,6 +306,7 @@ public class PartyPlayPlugin extends Plugin {
     @Subscribe
     public void onActivityInfo(final ActivityInfo event)
     {
+        log.debug("PPD:: onActivityInfo");
         setActivityInfo(event);
     }
 
@@ -297,7 +318,7 @@ public class PartyPlayPlugin extends Plugin {
 
     void setActivityInfo(ActivityInfo activityInfo) {
         PartyStateInfo partyStateInfo = partyStateInfoMap.get(activityInfo.getMemberId());
-
+        log.debug("PPD:: setActivityInfo");
         if (partyStateInfo != null) {
             partyStateInfo.setActivityInfo(activityInfo);
         } else {

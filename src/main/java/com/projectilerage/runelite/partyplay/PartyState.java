@@ -25,12 +25,13 @@
  */
 package com.projectilerage.runelite.partyplay;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.ws.PartyMember;
-import net.runelite.client.ws.PartyService;
-import net.runelite.client.ws.WSClient;
+import net.runelite.client.party.PartyMember;
+import net.runelite.client.party.PartyService;
+import net.runelite.client.party.WSClient;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -62,9 +63,11 @@ class PartyState
     private final PartyPlayConfig config;
     private final PartyPlayPlugin plugin;
     private final PartyService partyService;
+    private final String defaultLocalPlayerName = "<unknown>";
     private final WSClient wsClient;
 
     private PartyPresence lastPresence = null;
+    private String localPlayerName = defaultLocalPlayerName;
 
     @Inject
     private PartyState(
@@ -78,6 +81,39 @@ class PartyState
         this.plugin = plugin;
         this.partyService = partyService;
         this.wsClient = wsClient;
+    }
+
+    void setLocalPlayerName(String name) {
+        boolean shouldUpdate = false;
+        if(Strings.isNullOrEmpty(name)) {
+            if(this.localPlayerName.equals(this.defaultLocalPlayerName)) {
+                log.debug("PPD:: setLocalPlayerName.null");
+                if (this.partyService.getLocalMember() != null) {
+                    log.debug("PPD:: setLocalPlayerName.memberId");
+                    this.localPlayerName = String.valueOf(this.partyService.getLocalMember().getMemberId());
+                } else {
+                    log.debug("PPD:: setLocalPlayerName.default");
+                    this.localPlayerName = defaultLocalPlayerName;
+                }
+
+                shouldUpdate = true;
+            }
+        } else {
+            log.debug("PPD:: setLocalPlayerName.name");
+            this.localPlayerName = name;
+            shouldUpdate = true;
+        }
+
+        if(shouldUpdate) {
+            log.debug("PPD:: setLocalPlayerName.shouldUpdate");
+            if(lastPresence != null) {
+                log.debug("PPD:: setLocalPlayerName.lastPresence");
+                this.maybeSharePresence(lastPresence);
+            } else {
+                log.debug("PPD:: setLocalPlayerName.updatePresenceWithLatestEvent");
+                this.updatePresenceWithLatestEvent();
+            }
+        }
     }
 
     /**
@@ -209,7 +245,7 @@ class PartyState
             return;
         }
         // This is to reduce amount of RPC calls
-        if (!presence.equals(lastPresence) || force)
+        if (force || !presence.equals(lastPresence) || !presence.getName().equals(this.localPlayerName))
         {
             PartyMember localMember = partyService.getLocalMember();
             if(localMember != null) {
@@ -265,17 +301,13 @@ class PartyState
                     infoBuild.location("Gielinor");
                 }
 
-                if(lastPresence != null && lastPresence.getName() != null) {
-                    infoBuild.userId(lastPresence.getName());
-                } else {
-                    String name = cleanName(localMember.getName());
-                    infoBuild.userId(name);
-                    presence.setName(name);
-                }
+                String name = this.localPlayerName;
+                infoBuild.userId(name);
+                presence.setName(name);
 
                 ActivityInfo info = infoBuild.build();
                 info.setMemberId(localMember.getMemberId());
-                wsClient.send(info);
+                partyService.send(info);
                 plugin.setActivityInfo(info);
             }
         }
@@ -316,16 +348,5 @@ class PartyState
 
     boolean containsEventType(GameEventType eventType) {
         return events.parallelStream().anyMatch((e) -> e.getType() == eventType);
-    }
-
-    private String cleanName(String dirtyName) {
-        int delimiter = dirtyName.lastIndexOf('#');
-
-        if(delimiter > 0) {
-            return dirtyName.substring(0, delimiter);
-        } else {
-            return dirtyName;
-        }
-
     }
 }

@@ -32,13 +32,12 @@ import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.util.ColorUtil;
-import net.runelite.client.ws.PartyService;
+import net.runelite.client.party.PartyService;
 
 import javax.inject.Inject;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class PartyOverlay extends OverlayPanel
 {
@@ -47,7 +46,7 @@ public class PartyOverlay extends OverlayPanel
     private final PartyService party;
     private final PartyPlayConfig config;
 
-    private final Map<UUID, SplitComponentWrapper>  splitMap = new HashMap<>();
+    private final Map<Long, SplitComponentWrapper>  splitMap = new HashMap<>();
     private final GameEventType longestEvent = GameEventType.REGION_DRILL_SERGEANT;
 
     private int width = 0;
@@ -68,7 +67,7 @@ public class PartyOverlay extends OverlayPanel
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        final Map<UUID, PartyStateInfo> partyDataMap = plugin.getPartyStateInfoMap();
+        final Map<Long, PartyStateInfo> partyDataMap = plugin.getPartyStateInfoMap();
         if (partyDataMap.isEmpty())
         {
             return new Dimension();
@@ -89,7 +88,7 @@ public class PartyOverlay extends OverlayPanel
                     return;
                 }
 
-                boolean isSelf = party.getLocalMember() != null && party.getLocalMember().getMemberId().equals(uuid);
+                boolean isSelf = party.getLocalMember() != null && party.getLocalMember().getMemberId() == uuid;
 
                 if (!config.includeSelf() && isSelf)
                 {
