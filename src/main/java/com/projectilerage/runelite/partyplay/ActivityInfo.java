@@ -3,7 +3,7 @@ package com.projectilerage.runelite.partyplay;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import net.runelite.http.api.ws.messages.party.PartyMemberMessage;
+import net.runelite.client.party.messages.PartyMemberMessage;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

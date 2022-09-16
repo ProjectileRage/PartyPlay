@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
+//import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.StatChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.FontType;
@@ -23,11 +24,11 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 import net.runelite.client.util.ImageUtil;
-import net.runelite.client.ws.PartyService;
-import net.runelite.client.ws.WSClient;
-import net.runelite.http.api.ws.messages.party.UserJoin;
-import net.runelite.http.api.ws.messages.party.UserPart;
-import net.runelite.http.api.ws.messages.party.UserSync;
+import net.runelite.client.party.PartyService;
+import net.runelite.client.party.WSClient;
+import net.runelite.client.party.events.UserJoin;
+import net.runelite.client.party.events.UserPart;
+import net.runelite.client.party.messages.UserSync;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -79,7 +80,7 @@ public class PartyPlayPlugin extends Plugin {
     private final Map<Skill, Integer> skillExp = new HashMap<>();
 
     @Getter(AccessLevel.PACKAGE)
-    private final Map<UUID, PartyStateInfo> partyStateInfoMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Long, PartyStateInfo> partyStateInfoMap = Collections.synchronizedMap(new HashMap<>());
 
     private final Integer DEFAULT_SLAYER_ITEM = ItemID.SLAYER_HELMET;
 
@@ -288,7 +289,7 @@ public class PartyPlayPlugin extends Plugin {
         setActivityInfo(event);
     }
 
-    ActivityInfo getActivityInfo(UUID uuid) {
+    ActivityInfo getActivityInfo(Long uuid) {
         PartyStateInfo partyStateInfo = partyStateInfoMap.get(uuid);
 
         return partyStateInfo != null ? partyStateInfo.getActivityInfo() : null;
@@ -325,7 +326,7 @@ public class PartyPlayPlugin extends Plugin {
         return box;
     }
 
-    SlayerInfo getSlayerInfo(UUID uuid) {
+    SlayerInfo getSlayerInfo(Long uuid) {
         PartyStateInfo partyStateInfo = partyStateInfoMap.get(uuid);
 
         return partyStateInfo != null ? partyStateInfo.getSlayerInfo() : null;
@@ -395,7 +396,7 @@ public class PartyPlayPlugin extends Plugin {
         }
 
         setSlayerInfo(slayerInfo);
-        wsClient.send(slayerInfo);
+        partyService.send(slayerInfo);
     }
 
     void clearSlayerState() {
@@ -403,18 +404,27 @@ public class PartyPlayPlugin extends Plugin {
             return;
         }
 
-        UUID localId = partyService.getLocalMember().getMemberId();
+        long localId = partyService.getLocalMember().getMemberId();
 
-        if (localId != null) {
+        if (localId != 0) {
             PartyStateInfo partyStateInfo = partyStateInfoMap.get(localId);
             if(partyStateInfo != null && partyStateInfo.getSlayerInfo() != null) {
                 log.debug("PPD:: Removing slayer state");
                 SlayerInfo slayerInfo = partyStateInfo.getSlayerInfo();
                 slayerInfo.reset();
-                wsClient.send(slayerInfo);
+                partyService.send(slayerInfo);
             }
         } else {
             log.debug("PPD:: Null Local Member; Can't clear Slayer state");
         }
     }
+
+    /*@Subscribe
+    public void onHitsplatApplied(HitsplatApplied hitsplatApplied) {
+        if(hitsplatApplied.getActor().equals(client.getLocalPlayer())) {
+
+        } else if (hitsplatApplied.getHitsplat().) {
+
+        }
+    }*/
 }
